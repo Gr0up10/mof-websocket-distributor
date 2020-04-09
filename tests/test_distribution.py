@@ -33,6 +33,7 @@ def test_distribution():
     dist.process_handler_message(pack_packet(create_pack(Register, name='test', only_auth=True)).message, handler_session)
     assert len(handler_session.messages) == 1
     assert handler_session.messages[0] == create_pack(Result, status=Result.Status.SUCCESS)
+    assert handler_session.only_auth
 
     client_session = TestSession()
     dist.process_ws_connection(client_session)
@@ -46,3 +47,13 @@ def test_distribution():
                                  handler_session)
     assert len(client_session.messages) == 1
     assert client_session.messages[0] == json.dumps({'handler': 'test', 'command': 'send_message', 'data': '123'})
+
+    client_session = TestSession(-1)
+    dist.process_ws_connection(client_session)
+    assert -1 in dist.sessions
+    assert dist.sessions[-1] == client_session
+    print(handler_session.messages)
+    assert len(handler_session.messages) == 3
+
+    dist.process_ws_packet(json.dumps({'handler': 'test', 'command': 'send_message', 'data': '123'}), client_session)
+    assert len(handler_session.messages) == 3

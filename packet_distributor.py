@@ -19,17 +19,18 @@ class PacketDistributor:
     def process_ws_packet(self, pack, sender):
         pack = json.loads(pack)
         if pack['handler'] in self.handlers:
-            self.handlers[pack['handler']]\
-                .send(self.create_pack(sender, json.dumps({'command': pack['command'], 'data': pack['data']})))
+            handler = self.handlers[pack['handler']]
+            if not handler.only_auth or sender.id >= 0:
+                handler.send(self.create_pack(sender, json.dumps({'command': pack['command'], 'data': pack['data']})))
         else:
             print("Unknown handler {}".format(pack['handler']))
 
     def process_ws_connection(self, sender):
         if sender.id == -1:
-            sender.id = min(list(filter(lambda x: x < 0, self.sessions.keys())))-1
+            sender.id = min(list(filter(lambda x: x < 0, self.sessions.keys()))+[0])-1
         self.sessions[sender.id] = sender
         pack = self.create_pack(sender, 'connected')
-        [h.send(pack) for h in self.handlers.values()]
+        [h.send(pack) for h in self.handlers.values() if not h.only_auth or sender.id >= 0]
 
     def process_handler_message(self, pack, sender):
         handlers = {Packet: self.process_handler_packet, Register: self.process_handler_register}
@@ -46,6 +47,7 @@ class PacketDistributor:
     def process_handler_register(self, pack, sender):
         self.handlers[pack.name] = sender
         sender.name = pack.name
+        sender.only_auth = pack.only_auth
         res = Result()
         res.status = Result.Status.SUCCESS
         sender.send(res)
