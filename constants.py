@@ -1,12 +1,14 @@
-DB_NAME = 'database'
-DB_HOST = 'localhost'
-DB_USER = 'username'
-DB_PASSWORD = 'password'
+import os
 
-DJANGO_SECRET_KEY = 'ecw==078()bm0#u^f6))--6jz3nk27rwy04wb6=2f_3rqrsvq*'
+DB_NAME = os.getenv('DB_NAME', 'not found')
+DB_HOST = os.getenv('DB_HOST', 'not found')
+DB_USER = os.getenv('DB_USER', 'not found')
+DB_PASSWORD = os.getenv('DB_PASSWORD', 'not found')
 
-HANDLER_HOST = 'localhost'
-HANDLER_PORT = 58008
+DJANGO_SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'not found')
 
-WS_HOST = 'localhost'
-WS_PORT = 4321
+HANDLER_HOST = os.getenv('HANDLER_HOST', 'not found')
+HANDLER_PORT = os.getenv('HANDLER_PORT', 'not found')
+
+WS_HOST = os.getenv('WS_HOST', 'not found')
+WS_PORT = os.getenv('WS_PORT', 'not found')

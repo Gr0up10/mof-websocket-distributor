@@ -1,0 +1,11 @@
+version: '3'
+
+services:
+  distributor:
+    env_file:
+      - env.env
+    image: maplegend/websocket-distributor:master
+    build: .
+    ports:
+    - 58008:58008
+    - 4321:4321
