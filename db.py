@@ -2,11 +2,19 @@ import psycopg2
 import os
 
 
-class DB:
-    def __init__(self, host, user, password, db):
+class MetaSingleton(type):
+    _instances = {}
+
+    def __call__(cls, *args, **kwargs):
+        if cls not in cls._instances:
+            cls._instances[cls] = super(MetaSingleton, cls).__call__(*args, **kwargs)
+        return cls._instances[cls]
+
+
+class DB(metaclass=MetaSingleton):
+    def __init__(self):
         self.conn = None
         self.cur = None
-        self.connect(host, user, password, db)
 
     def connect(self, host, user, password, db):
         self.conn = psycopg2.connect(dbname=db, user=user, password=password, host=host)

@@ -8,17 +8,28 @@ class PacketDistributor:
         self.handlers = {}
         self.sessions = {}
 
-    def process_ws_packet(self, pack, sender):
-        if sender.id not in self.sessions:
-            self.sessions[sender.id] = sender
+    @staticmethod
+    def create_pack(sender, data):
+        packet = Packet()
+        packet.user_id = sender.id
+        packet.is_auth = sender.id > 0
+        packet.data = data
+        return packet
 
+    def process_ws_packet(self, pack, sender):
         pack = json.loads(pack)
         if pack['handler'] in self.handlers:
-            packet = Packet()
-            packet.user_id = sender.id
-            packet.is_auth = True
-            packet.data = json.dumps({'command': pack['command'], 'data': pack['data']})
-            self.handlers[pack['handler']].send(packet)
+            self.handlers[pack['handler']]\
+                .send(self.create_pack(sender, json.dumps({'command': pack['command'], 'data': pack['data']})))
+        else:
+            print("Unknown handler {}".format(pack['handler']))
+
+    def process_ws_connection(self, sender):
+        if sender.id == -1:
+            sender.id = min(list(filter(lambda x: x < 0, self.sessions.keys())))-1
+        self.sessions[sender.id] = sender
+        pack = self.create_pack(sender, 'connected')
+        [h.send(pack) for h in self.handlers.values()]
 
     def process_handler_message(self, pack, sender):
         handlers = {Packet: self.process_handler_packet, Register: self.process_handler_register}
@@ -38,3 +49,4 @@ class PacketDistributor:
         res = Result()
         res.status = Result.Status.SUCCESS
         sender.send(res)
+        print('Successfully registered {} handler'.format(pack.name))

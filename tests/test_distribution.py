@@ -35,10 +35,12 @@ def test_distribution():
     assert handler_session.messages[0] == create_pack(Result, status=Result.Status.SUCCESS)
 
     client_session = TestSession()
-    dist.process_ws_packet(json.dumps({'handler': 'test', 'command': 'send_message', 'data': '123'}), client_session)
-    assert handler_session.messages[1] == create_pack(Packet, is_auth=True, user_id=1, data=json.dumps({'command': 'send_message', 'data': '123'}))
+    dist.process_ws_connection(client_session)
     assert 1 in dist.sessions
     assert dist.sessions[1] == client_session
+    assert handler_session.messages[1] == create_pack(Packet, is_auth=True, user_id=1, data='connected')
+    dist.process_ws_packet(json.dumps({'handler': 'test', 'command': 'send_message', 'data': '123'}), client_session)
+    assert handler_session.messages[2] == create_pack(Packet, is_auth=True, user_id=1, data=json.dumps({'command': 'send_message', 'data': '123'}))
 
     dist.process_handler_message(pack_packet(create_pack(Packet, user_id=1, data=json.dumps({'command': 'send_message', 'data':'123'}))).message,
                                  handler_session)
