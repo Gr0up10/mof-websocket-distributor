@@ -1,4 +1,4 @@
-from session_decoder import decode
+from app.session_decoder import decode
 
 
 def test_decode():

@@ -11,4 +11,4 @@ RUN \
  apk --purge del .build-deps
 
 COPY . /code/
-ENTRYPOINT python main.py
+ENTRYPOINT python run.py

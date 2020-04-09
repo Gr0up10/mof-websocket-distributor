@@ -1,10 +1,10 @@
 import asyncio
 
-import constants
-from db import DB
-from handler_session import create_handler_server
-from ws_session import WSSession
-from packet_distributor import PacketDistributor
+from app import constants
+from app.db import DB
+from app.handler_session import create_handler_server
+from app.ws_session import WSSession
+from app.packet_distributor import PacketDistributor
 
 
 async def main():
@@ -21,5 +21,5 @@ async def main():
             ws_server.server.serve_forever(), handler_server.serve_forever())
 
 
-if __name__ == "__main__":
+def run():
     asyncio.run(main())

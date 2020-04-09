@@ -2,9 +2,8 @@ import psycopg2
 import testing.postgresql
 
 
-from db import DB
+from app.db import DB
 import datetime
-import constants
 
 
 def test_db():

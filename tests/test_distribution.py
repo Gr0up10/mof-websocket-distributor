@@ -1,4 +1,4 @@
-from packet_distributor import PacketDistributor
+from app.packet_distributor import PacketDistributor
 from protomodels.packets_pb2 import Register, Result, PacketWrapper, Packet
 import json
 

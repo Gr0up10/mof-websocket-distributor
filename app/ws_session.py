@@ -1,9 +1,9 @@
 import asyncio
 import websockets
 
-import constants
-from db import DB
-import session_decoder
+from app import constants
+from app.db import DB
+from app import session_decoder
 
 
 def parse_cookie(cookie):
