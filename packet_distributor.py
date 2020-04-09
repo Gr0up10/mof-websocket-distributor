@@ -1,6 +1,6 @@
 import json
 
-from protomodels.packets_pb2 import Packet
+from protomodels.packets_pb2 import Packet, Register, Result
 
 
 class PacketDistributor:
@@ -8,11 +8,47 @@ class PacketDistributor:
         self.handlers = {}
         self.sessions = {}
 
+    @staticmethod
+    def create_pack(sender, data):
+        packet = Packet()
+        packet.user_id = sender.id
+        packet.is_auth = sender.id > 0
+        packet.data = data
+        return packet
+
     def process_ws_packet(self, pack, sender):
         pack = json.loads(pack)
-        if pack.handler in self.handlers:
-            packet = Packet()
-            packet.user_id = 0
-            packet.is_auth = True
-            packet.data = json.dumps({'command': pack['command'], 'data': pack['data']})
-            self.handlers[pack.handler].send(packet)
+        if pack['handler'] in self.handlers:
+            handler = self.handlers[pack['handler']]
+            if not handler.only_auth or sender.id >= 0:
+                handler.send(self.create_pack(sender, json.dumps({'command': pack['command'], 'data': pack['data']})))
+        else:
+            print("Unknown handler {}".format(pack['handler']))
+
+    def process_ws_connection(self, sender):
+        if sender.id == -1:
+            sender.id = min(list(filter(lambda x: x < 0, self.sessions.keys()))+[0])-1
+        self.sessions[sender.id] = sender
+        pack = self.create_pack(sender, 'connected')
+        [h.send(pack) for h in self.handlers.values() if not h.only_auth or sender.id >= 0]
+
+    def process_handler_message(self, pack, sender):
+        handlers = {Packet: self.process_handler_packet, Register: self.process_handler_register}
+        for t in handlers.keys():
+            if pack.Is(t.DESCRIPTOR):
+                p = t()
+                pack.Unpack(p)
+                handlers[t](p, sender)
+
+    def process_handler_packet(self, pack, sender):
+        if pack.user_id in self.sessions:
+            self.sessions[pack.user_id].send(json.dumps({'handler': sender.name, **json.loads(pack.data)}))
+
+    def process_handler_register(self, pack, sender):
+        self.handlers[pack.name] = sender
+        sender.name = pack.name
+        sender.only_auth = pack.only_auth
+        res = Result()
+        res.status = Result.Status.SUCCESS
+        sender.send(res)
+        print('Successfully registered {} handler'.format(pack.name))
