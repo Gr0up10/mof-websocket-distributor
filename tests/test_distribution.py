@@ -52,8 +52,12 @@ def test_distribution():
     dist.process_ws_connection(client_session)
     assert -1 in dist.sessions
     assert dist.sessions[-1] == client_session
-    print(handler_session.messages)
     assert len(handler_session.messages) == 3
 
     dist.process_ws_packet(json.dumps({'handler': 'test', 'command': 'send_message', 'data': '123'}), client_session)
     assert len(handler_session.messages) == 3
+
+    dist.handlers['test'].only_auth = False
+    dist.process_ws_disconnection(client_session)
+    assert len(handler_session.messages) == 4
+    assert handler_session.messages[3] == create_pack(Packet, is_auth=False, user_id=-1, data='disconnected')

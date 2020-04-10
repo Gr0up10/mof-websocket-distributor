@@ -32,6 +32,11 @@ class PacketDistributor:
         pack = self.create_pack(sender, 'connected')
         [h.send(pack) for h in self.handlers.values() if not h.only_auth or sender.id >= 0]
 
+    def process_ws_disconnection(self, sender):
+        pack = self.create_pack(sender, 'disconnected')
+        [h.send(pack) for h in self.handlers.values() if not h.only_auth or sender.id >= 0]
+        del self.sessions[sender.id]
+
     def process_handler_message(self, pack, sender):
         handlers = {Packet: self.process_handler_packet, Register: self.process_handler_register}
         for t in handlers.keys():

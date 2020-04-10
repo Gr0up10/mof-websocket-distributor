@@ -13,7 +13,6 @@ class HandlerSession(asyncio.Protocol):
 
     def data_received(self, data: bytes):
         print(data)
-        #data = data.decode('ascii')
         pack = PacketWrapper()
         pack.ParseFromString(data)
         self.distributor.process_handler_message(pack.message, self)

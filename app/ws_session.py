@@ -29,10 +29,13 @@ class WSSession:
 
         self.distributor.process_ws_connection(self)
 
-        while True:
-            pack = await websocket.recv()
-            print('WS {} received {}'.format(self.id, pack))
-            self.distributor.process_ws_packet(pack, self)
+        try:
+            while True:
+                pack = await websocket.recv()
+                print('WS {} received {}'.format(self.id, pack))
+                self.distributor.process_ws_packet(pack, self)
+        except websockets.ConnectionClosed as exc:
+            self.distributor.pr
 
     def send(self, pack):
         print('send'+pack)
