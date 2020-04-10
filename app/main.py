@@ -8,6 +8,8 @@ from app.packet_distributor import PacketDistributor
 
 
 async def main():
+    print('Starting socket distributor on {}:{} and ws server on {}:{}'
+          .format(constants.HANDLER_HOST, constants.HANDLER_PORT, constants.WS_HOST, constants.WS_PORT))
     DB().connect(constants.DB_HOST, constants.DB_USER, constants.DB_PASSWORD, constants.DB_NAME)
 
     loop = asyncio.get_event_loop()
