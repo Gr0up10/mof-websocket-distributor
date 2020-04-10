@@ -27,8 +27,6 @@ class WSSession:
         if self.id != -1:
             print('Successfully authorized {}'.format(self.id))
 
-        await self.socket.send('id: {}'.format(self.id))
-
         self.distributor.process_ws_connection(self)
 
         while True:
