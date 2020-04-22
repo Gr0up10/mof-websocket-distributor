@@ -24,13 +24,14 @@ class WSSession:
     def __init__(self, distributor):
         self.distributor = distributor
         self.socket = None
+        self.id = -1
 
     async def ws_handler(self, websocket, path):
         self.socket = websocket
         try:
             session = parse_cookie(websocket.request_headers['cookie'])['sessionid']
             self.id = int(session_decoder.decode(DB().get_session_data(session), constants.DJANGO_SECRET_KEY)['_auth_user_id'])
-        except Exception as e:
+        except BaseException as e:
             print('auth failed {}'.format(e))
             self.id = -1
 
