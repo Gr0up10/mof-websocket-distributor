@@ -28,12 +28,12 @@ class HandlerSession(asyncio.Protocol):
                 data = data[5:]
                 while len(data) != 0:
                     packet = PacketWrapper()
-                    print(''.join('{:02x}'.format(x) for x in data[:size]))
+                    # print(''.join('{:02x}'.format(x) for x in data[:size]))
                     packet.ParseFromString(data[:size])
-                    print("handle new pack {}".format(packet))
+                    # print("handle new pack {}".format(packet))
                     self.distributor.process_handler_message(packet.message, self)
                     if size < len(data):
-                        print("decode more")
+                        # print("decode more")
                         data = data[size:]
                         _, size = unpack(">BI", data[:5])
                         data = data[5:]
