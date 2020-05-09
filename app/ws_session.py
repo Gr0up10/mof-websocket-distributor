@@ -51,7 +51,7 @@ class WSSession:
             self.distributor.process_ws_disconnection(client)
             print("exc", exc)
             print("User {} disconnected".format(self.id))
-            websocket.close()
+            await websocket.close()
 
     async def create_server(self, host, port):
         start_server = websockets.serve(self.ws_handler, host, port)

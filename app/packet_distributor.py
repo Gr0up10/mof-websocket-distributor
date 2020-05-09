@@ -1,6 +1,6 @@
 import json
 
-from protomodels.packets_pb2 import Packet, Register, Result
+from protomodels.packets_pb2 import Packet, Register, Result, InternalPacket
 
 
 class PacketDistributor:
@@ -16,6 +16,13 @@ class PacketDistributor:
         packet.data = data
         return packet
 
+    @staticmethod
+    def create_internal_pack(handler_name, data):
+        packet = InternalPacket()
+        packet.sender = handler_name
+        packet.message = data
+        return packet
+
     def process_ws_packet(self, pack, sender):
         pack = json.loads(pack)
         if pack['handler'] in self.handlers:
@@ -27,7 +34,7 @@ class PacketDistributor:
 
     def process_ws_connection(self, sender):
         if sender.id == -1:
-            sender.id = (min(list(filter(lambda x: x < 0, self.sessions.keys()))+[0]))-1
+            sender.id = (min(list(filter(lambda x: x < 0, self.sessions.keys())) + [0])) - 1
             print("Set id ", sender.id)
         self.sessions[sender.id] = sender
         print(self.sessions)
@@ -40,7 +47,8 @@ class PacketDistributor:
         del self.sessions[sender.id]
 
     def process_handler_message(self, pack, sender):
-        handlers = {Packet: self.process_handler_packet, Register: self.process_handler_register}
+        handlers = {Packet: self.process_handler_packet, Register: self.process_handler_register,
+                    InternalPacket: self.process_internal_packet}
         for t in handlers.keys():
             if pack.Is(t.DESCRIPTOR):
                 print("find handler for packet", t)
@@ -50,11 +58,18 @@ class PacketDistributor:
                 return
         print("Cannot parse packet {}".format(pack))
 
+    def process_internal_packet(self, pack, sender):
+        print("Broadcast internal packet {} from {}".format(pack, sender.name))
+        packet = self.create_internal_pack(sender.name, pack.message)
+        for name, handler in self.handlers.items():
+            if name != sender.name:
+                handler.send(packet)
+
     def process_handler_packet(self, pack, sender):
         print("Start processing packet")
         print(pack.user_id)
         user_id = pack.user_id
-        #user_id = (user_id >> 1) ^ (-(user_id & 1))
+        # user_id = (user_id >> 1) ^ (-(user_id & 1))
         self.sessions[user_id].id = user_id
         print("Packet user id {} saved user id {}".format(user_id, self.sessions[user_id].id))
         if user_id in self.sessions:
